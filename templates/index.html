@@ -2,20 +2,14 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>WebSocket Echo Client</title>
+    <title>Medius Challenge</title>
 </head>
 <script
   src="https://code.jquery.com/jquery-3.2.1.js"
   integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE="
   crossorigin="anonymous"></script>
 <body>
-    <h1>Test: Medius Chat Bot</h1>
-<!--     <p>
-        <input id="server" type="text" value="ws://echo.websocket.org/" size="40">
-        <button onclick="openSocket()">Open</button>
-        <button onclick="closeSocket()">Close</button>
-    </p> -->
-
+    <h1>Medius Chat Bot</h1>
     <p>
         <input id="message" type="text" size="40">
         <button onclick="sendText()">Send Text</button>
@@ -28,13 +22,10 @@
         var ws;
 
         function openSocket(url) {
-            // log('opening');
             ws = new WebSocket(url);
             ws.binaryType = 'arraybuffer'; // default is 'blob'
 
             ws.onopen = function() {
-                // log('Hello, I am going to ask you few questions that will help me know you better?')
-                // log('Bot: What is your name?');
                 sessionStorage.echoServer = url;
             };
 
@@ -101,11 +92,8 @@
             document.getElementById('messages').appendChild(li);
         }
 
-        // if (sessionStorage.echoServer) {
-        //     document.getElementById('server').value = sessionStorage.echoServer;
-        // }
     $(document).ready(function(){
-      openSocket('ws://localhost:9000/chat');
+      openSocket('ws://localhost:8585/chat');
     });
 
     $(document).keypress(function(e) {

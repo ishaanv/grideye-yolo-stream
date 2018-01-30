@@ -1,5 +1,3 @@
-# TODO add requriements file
-
 from flask import Flask, render_template
 from flask_sockets import Sockets
 
@@ -37,12 +35,15 @@ def qa_socket(ws):
 
 @app.route('/')
 def hello():
-    return render_template('index.html')
+    return render_template('medius2.html')
 
 
 if __name__ == "__main__":
     # TODO understand where gevent fits into the whole picture
     from gevent import pywsgi
     from geventwebsocket.handler import WebSocketHandler
-    server = pywsgi.WSGIServer(('', 9000), app, handler_class=WebSocketHandler)
+    port = 8585
+    # server = pywsgi.WSGIServer(('', port), app, handler_class=WebSocketHandler)
+    server = pywsgi.WSGIServer(('', 8585), app, handler_class=WebSocketHandler, keyfile='./server.key', certfile='./server.crt')
+    print("serving on http://localhost:{}".format(port))
     server.serve_forever()
