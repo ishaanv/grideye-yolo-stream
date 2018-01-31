@@ -1,11 +1,17 @@
-from flask import Flask, render_template
-from flask_sockets import Sockets
-import time
+import csv
 import json
+import time
+
+import numpy as np
+from flask import Flask, render_template
+
+from flask_sockets import Sockets
+
 app = Flask(__name__, static_url_path='')
 app.jinja_env.auto_reload = True
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 sockets = Sockets(app)
+
 
 data_frames = []
 inital_frame = [
@@ -26,12 +32,12 @@ def data_socket(ws):
 
 @sockets.route('/serve_data')
 def qa_socket(ws):
-    answers = []
+    ws.send(json.dumps(inital_frame))
     while not ws.closed:
-        ws.send(json.dumps(inital_frame))
-        time.sleep(1)
-        for frame in data_frames:
-            ws.send(json.dumps(frame))
+        with open('training-Thermal.csv') as f:
+            for frame in csv.reader(f):
+                ws.send(json.dumps(list(map(float, np.reshape(frame, (8,8))))))
+                time.sleep(0.5)
 
 
 @app.route('/')

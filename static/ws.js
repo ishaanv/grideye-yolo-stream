@@ -1,5 +1,22 @@
 var ws;
 
+
+Plotly.plot('graph', [{
+    type: 'heatmap',
+    z: [
+        [
+0, 0, 0, 35, 35, 0, 0, 0,
+0, 0, 35, 0, 0, 35, 0, 0,
+0, 0, 0, 0, 0, 35, 0, 0,
+0, 0, 0, 0, 35, 0, 0, 0,
+0, 0, 0, 35, 0, 0, 0, 0,
+0, 0, 0, 35, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 35, 0, 0, 0, 0
+]
+    ]
+}])
+
 function openSocket(url) {
     ws = new WebSocket(url);
     // ws.binaryType = 'arraybuffer'; // default is 'blob'
@@ -13,6 +30,11 @@ function openSocket(url) {
     };
 
     ws.onmessage = function(e) {
+        Plotly.extendTraces('graph', {
+            z: [
+                [JSON.parse(e.data)]
+            ]
+        }, [0])
         log(e.data);
     };
 
