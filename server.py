@@ -1,41 +1,42 @@
 from flask import Flask, render_template
 from flask_sockets import Sockets
-
-app = Flask(__name__)
+import time
+import json
+app = Flask(__name__, static_url_path='')
 app.jinja_env.auto_reload = True
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 sockets = Sockets(app)
 
-QUESTIONS = [
-    'What is your name?',
-    'Are you male or female?',
-    'When were you born? (dd-mm-yyyy)',
-    'Are you a smoker?',
-]
+data_frames = []
+inital_frame = [
+0, 0, 0, 35, 35, 0, 0, 0,
+0, 0, 35, 0, 0, 35, 0, 0,
+0, 0, 0, 0, 0, 35, 0, 0,
+0, 0, 0, 0, 35, 0, 0, 0,
+0, 0, 0, 35, 0, 0, 0, 0,
+0, 0, 0, 35, 0, 0, 0, 0,
+0, 0, 0, 0, 0, 0, 0, 0,
+0, 0, 0, 35, 0, 0, 0, 0
+];
 
+@sockets.route('/recv_data')
+def data_socket(ws):
+    while not ws.closed:
+        data_frames.append(ws.receive())
 
-@sockets.route('/chat')
+@sockets.route('/serve_data')
 def qa_socket(ws):
     answers = []
     while not ws.closed:
-        ws.send('Hello, I am going to ask you few questions that will help me know you better?')
-        for question in QUESTIONS:
-            ws.send(question)
-            message = ws.receive()
-            answers.append(message)
-        ws.send('Thank you. Press "Done" for results.')
-
-        # wait for 'done'
-        while not ws.closed:
-            if ws.receive() == 'done':
-                # fix last answer
-                answers[-1] = 'smoker' if answers[-1].lower() == 'yes' else 'non-smoker'
-                ws.send("{0} was born in {2} and is a {1} {3}.".format(*answers))
+        ws.send(json.dumps(inital_frame))
+        time.sleep(1)
+        for frame in data_frames:
+            ws.send(json.dumps(frame))
 
 
 @app.route('/')
 def hello():
-    return render_template('medius2.html')
+    return render_template('bvn.html')
 
 
 if __name__ == "__main__":
@@ -43,7 +44,7 @@ if __name__ == "__main__":
     from gevent import pywsgi
     from geventwebsocket.handler import WebSocketHandler
     port = 8585
-    # server = pywsgi.WSGIServer(('', port), app, handler_class=WebSocketHandler)
-    server = pywsgi.WSGIServer(('', 8585), app, handler_class=WebSocketHandler, keyfile='./server.key', certfile='./server.crt')
+    server = pywsgi.WSGIServer(('', port), app, handler_class=WebSocketHandler)
+    # server = pywsgi.WSGIServer(('', 8585), app, handler_class=WebSocketHandler, keyfile='./server.key', certfile='./server.crt')
     print("serving on http://localhost:{}".format(port))
     server.serve_forever()
