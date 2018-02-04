@@ -48,14 +48,14 @@ def qa_socket(ws):
     ws.send(json.dumps(inital_frame))
     while not ws.closed:
         pixels = g.get_temperatures()
-        bicubic = griddata(
-            points, pixels.flatten(), (grid_x, grid_y), method='cubic')
-        pixels = bicubic.reshape(32, 32).tolist()
-        therm = g.get_thermistor()
-        current_time = str(datetime.now())
-        data_parse = {"time": current_time, "ambient": therm, "frame": pixels}
-        data = json.dumps(data_parse)
-        ws.send(json.dumps(frame))
+        # bicubic = griddata(
+        #     points, pixels.flatten(), (grid_x, grid_y), method='cubic')
+        # pixels = bicubic.reshape(32, 32).tolist()
+        # therm = g.get_thermistor()
+        # current_time = str(datetime.now())
+        # data_parse = {"time": current_time, "ambient": therm, "frame": pixels}
+        # data = json.dumps(data_parse)
+        ws.send(json.dumps(pixels.tolist()))
         if not np.any(pixels):
             import pdb
             pdb.set_trace()
