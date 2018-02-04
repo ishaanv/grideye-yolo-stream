@@ -4,16 +4,14 @@ var ws;
 Plotly.plot('graph', [{
     type: 'heatmap',
     z: [
-        [
-0, 0, 0, 35, 35, 0, 0, 0,
-0, 0, 35, 0, 0, 35, 0, 0,
-0, 0, 0, 0, 0, 35, 0, 0,
-0, 0, 0, 0, 35, 0, 0, 0,
-0, 0, 0, 35, 0, 0, 0, 0,
-0, 0, 0, 35, 0, 0, 0, 0,
-0, 0, 0, 0, 0, 0, 0, 0,
-0, 0, 0, 35, 0, 0, 0, 0
-]
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0]
     ]
 }])
 
@@ -26,16 +24,16 @@ function openSocket(url) {
     };
 
     ws.onclose = function() {
-        log('close');
+        // log('close');
     };
 
     ws.onmessage = function(e) {
-        Plotly.extendTraces('graph', {
+        Plotly.update('graph', {
             z: [
-                [JSON.parse(e.data)]
+                JSON.parse(e.data)
             ]
         }, [0])
-        log(e.data);
+        // log(e.data);
     };
 
     ws.onerror = function() {
