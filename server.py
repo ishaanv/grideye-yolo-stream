@@ -45,7 +45,7 @@ except:
 
 @sockets.route('/serve_data')
 def qa_socket(ws):
-    ws.send(json.dumps(inital_frame))
+    # ws.send(json.dumps(inital_frame))
     while not ws.closed:
         pixels = g.get_temperatures()
         # bicubic = griddata(
