@@ -22,14 +22,13 @@ sockets = Sockets(app)
 #     while not ws.closed:
 #         data_frames.append(ws.receive())
 
-N = 8 #number of pixels per row in original
-M = 32 #number of pixels per row wanted (complex)
-points = [(math.floor(ix / N), (ix % N)) for ix in range(0, N*N)]
-grid_x, grid_y = np.mgrid[0:(N-1):M, 0:(N-1):M]
-
+N = 8  #number of pixels per row in original
+M = 32  #number of pixels per row wanted (complex)
+points = [(math.floor(ix / N), (ix % N)) for ix in range(0, N * N)]
+grid_x, grid_y = np.mgrid[0:(N - 1):M, 0:(N - 1):M]
+g = GridEYEKit()
 print("Connecting to Grideye")
 try:
-    g = GridEYEKit()
     g_status_connect = g.connect()
     print(g_status_connect)
     if not g_status_connect:
@@ -59,7 +58,7 @@ def qa_socket(ws):
         if not np.any(pixels):
             import pdb
             pdb.set_trace()
-        time.sleep(0.5)
+        time.sleep(1)
 
 
 
