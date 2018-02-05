@@ -23,7 +23,7 @@ sockets = Sockets(app)
 #         data_frames.append(ws.receive())
 
 N = 8  #number of pixels per row in original
-M = 32  #number of pixels per row wanted (complex)
+M = 32j  #number of pixels per row wanted (complex)
 points = [(math.floor(ix / N), (ix % N)) for ix in range(0, N * N)]
 grid_x, grid_y = np.mgrid[0:(N - 1):M, 0:(N - 1):M]
 g = GridEYEKit()
@@ -44,22 +44,19 @@ except:
 
 @sockets.route('/serve_data')
 def qa_socket(ws):
-    # ws.send(json.dumps(inital_frame))
     while not ws.closed:
+        # import pdb;pdb.set_trace()
         pixels = g.get_temperatures()
-        # bicubic = griddata(
-        #     points, pixels.flatten(), (grid_x, grid_y), method='cubic')
-        # pixels = bicubic.reshape(32, 32).tolist()
-        # therm = g.get_thermistor()
-        # current_time = str(datetime.now())
-        # data_parse = {"time": current_time, "ambient": therm, "frame": pixels}
-        # data = json.dumps(data_parse)
-        ws.send(json.dumps(pixels.tolist()))
+        bicubic = griddata(
+            points, pixels.flatten(), (grid_x, grid_y), method='cubic')
+        pixels = bicubic.reshape(32, 32).tolist()
+        therm = g.get_thermistor()
+        ws.send(json.dumps(pixels))
+        # ws.send(json.dumps(pixels.tolist()))
         if not np.any(pixels):
             import pdb
             pdb.set_trace()
-        time.sleep(1)
-
+        time.sleep(0.5)
 
 
 @app.route('/')
