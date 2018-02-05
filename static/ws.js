@@ -58,5 +58,5 @@ function sendText() {
 }
 
 $(document).ready(function () {
-    openSocket('ws://' + window.location.href + '/serve_data');
+    openSocket('ws://' + window.location.host + '/serve_data');
 });
