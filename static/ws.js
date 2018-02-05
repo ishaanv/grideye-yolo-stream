@@ -56,3 +56,7 @@ function sendText() {
     ws.send(message);
     document.getElementById('message').value = '';
 }
+
+$(document).ready(function () {
+    openSocket('ws://localhost:8585/serve_data');
+});
