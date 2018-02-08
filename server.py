@@ -147,4 +147,4 @@ def run(host):
     asyncio.get_event_loop().run_forever()
 
 if __name__ == "__main__":
-    run(sys.argv[1] if len(sys.argv) > 1 else 'localhost')
+    run(sys.argv[1] if len(sys.argv) > 1 else '0.0.0.0')
