@@ -79,14 +79,11 @@ def hello():
 
 @asyncio.coroutine
 def test_get():
-    with open('training-Thermal.csv') as f:
-        for pixels in csv.reader(f):
-            bicubic = griddata(
-                points, pixels, (grid_x, grid_y), method='cubic')
-            # pixels = [float(x) for x in bicubic.reshape(32, 32).tolist()]
-            frame = np.reshape([float(x) for x in pixels], shape).tolist()
-            frames.append(frame)
-            yield from asyncio.sleep(0.5)
+    while True:
+        for index, connection in enumerate(grideye_connections):
+            frame = yield from connection.recv() 
+            frames.append(json.loads(frame))
+        yield from asyncio.sleep(0.5)
 
 @asyncio.coroutine
 def test_send():
@@ -113,7 +110,6 @@ def ws_message_handle(ws, message):
 
 async def ws_handler(ws, path):
     ra = ws.remote_address
-    web_connections.append(ws)
     # client = Client(len(self.ra_to_client), ws)
     # self.ra_to_client[ra] = client
 
