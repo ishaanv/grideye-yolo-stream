@@ -118,22 +118,22 @@ async def ws_handler(ws, path):
     # producer_task = asyncio.ensure_future(add_frame()) # so does this listen to events here?
     listener_task = asyncio.ensure_future(ws.recv())
     # self.introduce(client)
-
-    while not ws.closed:
-        done, pending = await asyncio.wait(
+    done, pending = await asyncio.wait(
             [listener_task],
             return_when=asyncio.FIRST_COMPLETED)
-        if listener_task in done:
-            message = listener_task.result()
-            if message is None:
-                break
-                # client.alive = False
+    if listener_task in done:
+        message = listener_task.result()
+        if message is None:
+            return
+            # client.alive = False
+        else:
+            json_message = json.loads(message)
+            if json_message['device'] == 'pi':
+                grideye_connections.append(ws)
             else:
-                ws_message_handle(ws, message)
-                listener_task = asyncio.ensure_future(ws.recv())
-
-    # exit the program
-    # del self.ra_to_client[ra]
+                web_connections.append(ws)
+    while True:
+        time.sleep(1)
 
 def run(host):
     '''
