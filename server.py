@@ -46,23 +46,6 @@ def init_grideye():
         os._exit(1)
 
 
-# @sockets.route('/serve_data')
-# def qa_socket(ws):
-#     while not ws.closed:
-#         # import pdb;pdb.set_trace()
-#         pixels = g.get_temperatures()
-#         bicubic = griddata(
-#             points, pixels.flatten(), (grid_x, grid_y), method='cubic')
-#         pixels = bicubic.reshape(32, 32).tolist()
-#         therm = g.get_thermistor()
-#         ws.send(json.dumps(pixels))
-#         # ws.send(json.dumps(pixels.tolist()))
-#         if not np.any(pixels):
-#             import pdb
-#             pdb.set_trace()
-#         time.sleep(0.5)
-
-
 async def add_frame():
     while True:
         with open('training-Thermal.csv') as f:
@@ -79,43 +62,30 @@ def hello():
 
 @asyncio.coroutine
 def test_get():
-    while True:
-        for index, connection in enumerate(grideye_connections):
-            frame = yield from connection.recv() 
-            frames.append(json.loads(frame))
-        yield from asyncio.sleep(0.5)
+    try:
+        while True:
+            for index, connection in enumerate(grideye_connections):
+                frame = yield from connection.recv() 
+                frames.append(json.loads(frame))
+            yield from asyncio.sleep(0.5)
+    except Exception as e:
+        print(e)
 
 @asyncio.coroutine
 def test_send():
-    yield from asyncio.sleep(2)
-    while True:
-        yield from asyncio.sleep(0.5)
-        for connection in web_connections:
-            print('sending data to ' + str(connection))
-            yield from connection.send(json.dumps(frames[0]))
-
-
-def ws_message_handle(ws, message):
-    ra = ws.remote_address
-    # client = self.ra_to_client.get(ra, None)
-    # if client is not None and message == "bump":
-    #     client.bump()
-    #     you_status = client.hstr()
-    #     client.json_pre_send({
-    #         'you': you_status,
-    #         'size': len(self.ra_to_client),
-    #         client.i: you_status
-    #     })
-    #     self.client_publish_to_peers(client)
-
+    try:
+        yield from asyncio.sleep(2)
+        while True:
+            yield from asyncio.sleep(0.5)
+            for connection in web_connections:
+                print('sending data to ' + str(connection))
+                yield from connection.send(json.dumps(frames[0]))
+    except Exception as e:
+        print(e)
+    
 async def ws_handler(ws, path):
     ra = ws.remote_address
-    # client = Client(len(self.ra_to_client), ws)
-    # self.ra_to_client[ra] = client
-
-    # producer_task = asyncio.ensure_future(add_frame()) # so does this listen to events here?
     listener_task = asyncio.ensure_future(ws.recv())
-    # self.introduce(client)
     done, pending = await asyncio.wait(
             [listener_task],
             return_when=asyncio.FIRST_COMPLETED)
@@ -123,7 +93,6 @@ async def ws_handler(ws, path):
         message = listener_task.result()
         if message is None:
             return
-            # client.alive = False
         else:
             json_message = json.loads(message)
             if json_message['device'] == 'pi':
