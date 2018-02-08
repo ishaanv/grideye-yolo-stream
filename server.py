@@ -20,7 +20,8 @@ app.jinja_env.auto_reload = True
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 sockets = Sockets(app)
 
-frames = deque([], 10)
+shape = (8,8)
+frames = deque([], 1)
 grideye_connections = []
 web_connections = []
 
@@ -84,7 +85,8 @@ def test_get():
             bicubic = griddata(
                 points, pixels, (grid_x, grid_y), method='cubic')
             # pixels = [float(x) for x in bicubic.reshape(32, 32).tolist()]
-            frames.append(pixels)
+            frame = np.reshape([float(x) for x in pixels], shape).tolist()
+            frames.append(frame)
             yield from asyncio.sleep(0.5)
 
 @asyncio.coroutine
@@ -93,6 +95,7 @@ def test_send():
     while True:
         yield from asyncio.sleep(0.5)
         for connection in web_connections:
+            print('sending data to ' + str(connection))
             yield from connection.send(json.dumps(frames[0]))
 
 
@@ -133,7 +136,7 @@ async def ws_handler(ws, path):
             else:
                 web_connections.append(ws)
     while True:
-        time.sleep(1)
+        await asyncio.sleep(1)
 
 def run(host):
     '''
