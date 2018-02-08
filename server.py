@@ -78,7 +78,6 @@ def test_send():
         while True:
             yield from asyncio.sleep(0.5)
             for connection in web_connections:
-                print('sending data to ' + str(connection))
                 yield from connection.send(json.dumps(frames[0]))
     except Exception as e:
         print(e)
