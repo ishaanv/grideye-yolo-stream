@@ -12,13 +12,12 @@ import websockets
 from flask import Flask, render_template
 from scipy.interpolate import griddata
 
-from flask_sockets import Sockets
 from GridEyeKit import GridEYEKit
 
 app = Flask(__name__, static_url_path='')
 app.jinja_env.auto_reload = True
 app.config['TEMPLATES_AUTO_RELOAD'] = True
-sockets = Sockets(app)
+
 
 shape = (8,8)
 frames = deque([], 1)
