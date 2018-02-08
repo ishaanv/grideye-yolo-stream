@@ -140,7 +140,7 @@ async def ws_handler(ws, path):
 def run(host):
     '''
     '''
-    start_server = websockets.serve(ws_handler, host, 9677)
+    start_server = websockets.serve(ws_handler, host, 8888)
     asyncio.get_event_loop().run_until_complete(start_server)
     asyncio.async(test_get())
     asyncio.async(test_send())
