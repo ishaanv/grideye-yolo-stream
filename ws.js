@@ -1,4 +1,4 @@
-var ws = new WebSocket("ws://" + window.location.hostname + ":9677/");
+var ws = new WebSocket("ws://" + window.location.hostname + ":8888/");
 
 Plotly.d3.json('https://raw.githubusercontent.com/plotly/datasets/master/custom_heatmap_colorscale.json', function (figure) {
     Plotly.plot('graph', [{
