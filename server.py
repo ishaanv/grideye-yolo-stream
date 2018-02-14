@@ -84,8 +84,10 @@ def test_send():
         while True:
             yield from asyncio.sleep(0.5)
             for index, connection in enumerate(web_connections):
-                yield from connection.send(json.dumps({'type': 'grideye','data':frames[0]}))
+                if frames:
+                    yield from connection.send(json.dumps({'type': 'grideye','data':frames[0]}))
                 if yolos:
+                    # import pdb; pdb.set_trace()
                     yield from connection.send(json.dumps({'type': 'yolo', 'data': yolos[0]}))
                 yolos.pop() # empty yolo buffer
     except Exception as e:
