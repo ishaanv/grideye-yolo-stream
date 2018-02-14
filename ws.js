@@ -34,7 +34,8 @@ ws.onmessage = function (e) {
         }, [0])
     } else {
         // update image
-
+        string baseStr64 = json_data.data;
+        imgElem.setAttribute('src', "data:image/jpg;base64," + baseStr64);
     };
 }
 
