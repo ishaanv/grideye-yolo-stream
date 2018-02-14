@@ -1,13 +1,15 @@
 import asyncio
+import csv
 import json
+import logging
 import math
 import os
-import time
-from datetime import datetime
 import sys
+import time
 from collections import deque
+from datetime import datetime
+
 import numpy as np
-import csv
 import websockets
 from flask import Flask, render_template
 from scipy.interpolate import griddata
@@ -18,8 +20,9 @@ app = Flask(__name__, static_url_path='')
 app.jinja_env.auto_reload = True
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
+logging.basicConfig(level=logging.DEBUG)
 
-shape = (8,8)
+shape = (8, 8)
 frames = deque([], 1)
 yolos = deque([], 1)
 grideye_connections = []
@@ -30,6 +33,7 @@ N = 8  #number of pixels per row in original
 M = 32j  #number of pixels per row wanted (complex)
 points = [(math.floor(ix / N), (ix % N)) for ix in range(0, N * N)]
 grid_x, grid_y = np.mgrid[0:(N - 1):M, 0:(N - 1):M]
+
 
 def init_grideye():
     g = GridEYEKit()
@@ -42,7 +46,7 @@ def init_grideye():
             print("could not connect to grideye...")
             os._exit(1)
         print("Connected\n")
-    except :
+    except:
         print("could not connect to grideye...")
         g.close()
         os._exit(1)
@@ -53,7 +57,7 @@ async def add_frame():
         with open('training-Thermal.csv') as f:
             for frame in csv.reader(f):
                 frames.append([[float(x) for x in row]
-                         for row in np.reshape(frame, (8, 8)).tolist()])
+                               for row in np.reshape(frame, (8, 8)).tolist()])
                 await asyncio.sleep(0.5)
 
 
@@ -67,7 +71,7 @@ def get_grideye():
     while True:
         try:
             for index, connection in enumerate(grideye_connections):
-                data = yield from connection.recv() 
+                data = yield from connection.recv()
                 json_data = json.loads(data)
                 frames.append(json_data['data'])
             yield from asyncio.sleep(0.5)
@@ -90,7 +94,6 @@ def get_yolo():
             print(e)
 
 
-
 @asyncio.coroutine
 def send_to_web():
     # send thermal grid
@@ -100,22 +103,30 @@ def send_to_web():
             yield from asyncio.sleep(0.5)
             for index, connection in enumerate(web_connections):
                 if frames:
-                    yield from connection.send(json.dumps({'type': 'grideye','data':frames[0]}))
+                    yield from connection.send(
+                        json.dumps({
+                            'type': 'grideye',
+                            'data': frames[0]
+                        }))
                 if yolos:
                     # import pdb; pdb.set_trace()
-                    yield from connection.send(json.dumps({'type': 'yolo', 'data': yolos[0]}))
+                    yield from connection.send(
+                        json.dumps({
+                            'type': 'yolo',
+                            'data': yolos[0]
+                        }))
             if yolos:
                 yolos.pop()  # empty yolo buffer
         except Exception as e:
+            del web_connections[index]
             print("removing index {}, ".format(index), e)
-        
-    
+
+
 async def ws_handler(ws, path):
     ra = ws.remote_address
     listener_task = asyncio.ensure_future(ws.recv())
     done, pending = await asyncio.wait(
-            [listener_task],
-            return_when=asyncio.FIRST_COMPLETED)
+        [listener_task], return_when=asyncio.FIRST_COMPLETED)
     if listener_task in done:
         message = listener_task.result()
         if message is None:
@@ -131,6 +142,7 @@ async def ws_handler(ws, path):
     while True:
         await asyncio.sleep(1)
 
+
 def run(host):
     '''
     '''
@@ -140,6 +152,7 @@ def run(host):
     asyncio.async(get_yolo())
     asyncio.async(send_to_web())
     asyncio.get_event_loop().run_forever()
+
 
 if __name__ == "__main__":
     run(sys.argv[1] if len(sys.argv) > 1 else '0.0.0.0')
