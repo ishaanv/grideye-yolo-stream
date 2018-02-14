@@ -73,12 +73,13 @@ def test_get():
 
 @asyncio.coroutine
 def test_send():
+    # send thermal grid
     try:
         yield from asyncio.sleep(2)
         while True:
             yield from asyncio.sleep(0.5)
             for connection in web_connections:
-                yield from connection.send(json.dumps(frames[0]))
+                yield from connection.send(json.dumps({'type': 'grideye','data':frames[0]}))
     except Exception as e:
         print(e)
     

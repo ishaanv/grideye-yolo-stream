@@ -24,12 +24,19 @@ ws.onopen = function (e){
 }
 
 ws.onmessage = function (e) {
-    Plotly.update('graph', {
-        z: [
-            JSON.parse(e.data)
-        ]
-    }, [0])
-};
+    var json_data = JSON.parse(e.data)
+    if (json_data.type == 'grideye') {
+        // update thermal
+        Plotly.update('graph', {
+            z: [
+                json_data.data
+            ]
+        }, [0])
+    } else {
+        // update image
+
+    };
+}
 
 // bump = function () {
 //     ws.send("bump");
