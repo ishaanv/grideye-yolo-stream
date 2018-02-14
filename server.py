@@ -24,6 +24,7 @@ frames = deque([], 1)
 yolos = deque([], 1)
 grideye_connections = []
 web_connections = []
+yolo_connections = []
 
 N = 8  #number of pixels per row in original
 M = 32j  #number of pixels per row wanted (complex)
@@ -62,26 +63,40 @@ def hello():
 
 
 @asyncio.coroutine
-def test_get():
-    try:
-        while True:
+def get_grideye():
+    while True:
+        try:
             for index, connection in enumerate(grideye_connections):
                 data = yield from connection.recv() 
                 json_data = json.loads(data)
-                if json_data['type'] == 'grideye':
-                    frames.append(json_data['data'])
-                else:  # yolo data
-                    yolos.append(json_data['data']) # image will be in base64, decode on the front end
+                frames.append(json_data['data'])
             yield from asyncio.sleep(0.5)
-    except Exception as e:
-        print(e)
+        except Exception as e:
+            del grideye_connections[index]
+            print(e)
+
 
 @asyncio.coroutine
-def test_send():
+def get_yolo():
+    while True:
+        try:
+            for index, connection in enumerate(yolo_connections):
+                data = yield from connection.recv()
+                json_data = json.loads(data)
+                yolos.append(json_data['data'])
+            yield from asyncio.sleep(0.5)
+        except Exception as e:
+            del yolo_connections[index]
+            print(e)
+
+
+
+@asyncio.coroutine
+def send_to_web():
     # send thermal grid
-    try:
-        yield from asyncio.sleep(2)
-        while True:
+    yield from asyncio.sleep(2)
+    while True:
+        try:
             yield from asyncio.sleep(0.5)
             for index, connection in enumerate(web_connections):
                 if frames:
@@ -89,9 +104,11 @@ def test_send():
                 if yolos:
                     # import pdb; pdb.set_trace()
                     yield from connection.send(json.dumps({'type': 'yolo', 'data': yolos[0]}))
-                yolos.pop() # empty yolo buffer
-    except Exception as e:
-        print("removing index {}, ".format(index), e)
+            if yolos:
+                yolos.pop()  # empty yolo buffer
+        except Exception as e:
+            print("removing index {}, ".format(index), e)
+        
     
 async def ws_handler(ws, path):
     ra = ws.remote_address
@@ -105,8 +122,10 @@ async def ws_handler(ws, path):
             return
         else:
             json_message = json.loads(message)
-            if json_message['device'] == 'pi':
+            if json_message['device'] == 'grideye':
                 grideye_connections.append(ws)
+            elif json_message['device'] == 'yolo':
+                yolo_connections.append(ws)
             else:
                 web_connections.append(ws)
     while True:
@@ -117,8 +136,9 @@ def run(host):
     '''
     start_server = websockets.serve(ws_handler, host, 8888)
     asyncio.get_event_loop().run_until_complete(start_server)
-    asyncio.async(test_get())
-    asyncio.async(test_send())
+    asyncio.async(get_grideye())
+    asyncio.async(get_yolo())
+    asyncio.async(send_to_web())
     asyncio.get_event_loop().run_forever()
 
 if __name__ == "__main__":
