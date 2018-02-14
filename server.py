@@ -21,6 +21,7 @@ app.config['TEMPLATES_AUTO_RELOAD'] = True
 
 shape = (8,8)
 frames = deque([], 1)
+yolos = deque([], 1)
 grideye_connections = []
 web_connections = []
 
@@ -65,8 +66,12 @@ def test_get():
     try:
         while True:
             for index, connection in enumerate(grideye_connections):
-                frame = yield from connection.recv() 
-                frames.append(json.loads(frame))
+                data = yield from connection.recv() 
+                json_data = json.loads(data)
+                if json_data['type'] == 'grideye':
+                    frames.append(json_data['data'])
+                else:  # yolo data
+                    yolos.append(json_data['data']) # image will be in base64, decode on the front end
             yield from asyncio.sleep(0.5)
     except Exception as e:
         print(e)
@@ -78,10 +83,13 @@ def test_send():
         yield from asyncio.sleep(2)
         while True:
             yield from asyncio.sleep(0.5)
-            for connection in web_connections:
+            for index, connection in enumerate(web_connections):
                 yield from connection.send(json.dumps({'type': 'grideye','data':frames[0]}))
+                if yolos:
+                    yield from connection.send(json.dumps({'type': 'yolo', 'data': yolos[0]}))
+                yolos.pop() # empty yolo buffer
     except Exception as e:
-        print(e)
+        print("removing index {}, ".format(index), e)
     
 async def ws_handler(ws, path):
     ra = ws.remote_address
