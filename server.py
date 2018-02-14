@@ -20,7 +20,7 @@ app = Flask(__name__, static_url_path='')
 app.jinja_env.auto_reload = True
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 
 shape = (8, 8)
 frames = deque([], 1)
@@ -72,6 +72,7 @@ def get_grideye():
         try:
             for index, connection in enumerate(grideye_connections):
                 data = yield from connection.recv()
+                # import pdb; pdb.set_trace()
                 json_data = json.loads(data)
                 frames.append(json_data['data'])
             yield from asyncio.sleep(0.5)
@@ -132,6 +133,7 @@ async def ws_handler(ws, path):
         if message is None:
             return
         else:
+            # import pdb; pdb.set_trace()
             json_message = json.loads(message)
             if json_message['device'] == 'grideye':
                 grideye_connections.append(ws)
