@@ -2,6 +2,8 @@ import asyncio
 import csv
 import json
 import logging
+from logging.handlers import RotatingFileHandler
+
 import math
 import os
 import sys
@@ -31,8 +33,8 @@ stream_handler.setLevel(logging.INFO)
 stream_handler.setFormatter(formatter)
 
 logFilePath = "./debug.log"
-file_handler = logging.handlers.TimedRotatingFileHandler(
-    filename=logFilePath, when='midnight', backupCount=30) # maybe make this a size limit rotation
+file_handler = RotatingFileHandler(
+    filename=logFilePath, maxBytes=5*1024*1024, backupCount=2)  # maybe make this a size limit rotation
 file_handler.setFormatter(formatter)
 file_handler.setLevel(logging.DEBUG)
 
