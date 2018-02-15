@@ -20,7 +20,24 @@ app = Flask(__name__, static_url_path='')
 app.jinja_env.auto_reload = True
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
-logging.basicConfig(level=logging.INFO)
+# logging.basicConfig(level=logging.INFO) # take this value from the command line
+logger = logging.getLogger("mylog")
+formatter = logging.Formatter(
+    '%(asctime)s | %(name)s |  %(levelname)s: %(message)s')
+logger.setLevel(logging.DEBUG)
+
+stream_handler = logging.StreamHandler()
+stream_handler.setLevel(logging.INFO)
+stream_handler.setFormatter(formatter)
+
+logFilePath = "./debug.log"
+file_handler = logging.handlers.TimedRotatingFileHandler(
+    filename=logFilePath, when='midnight', backupCount=30) # maybe make this a size limit rotation
+file_handler.setFormatter(formatter)
+file_handler.setLevel(logging.DEBUG)
+
+logger.addHandler(file_handler)
+logger.addHandler(stream_handler)
 
 shape = (8, 8)
 frames = deque([], 1)
@@ -28,11 +45,6 @@ yolos = deque([], 1)
 grideye_connections = []
 web_connections = []
 yolo_connections = []
-
-N = 8  #number of pixels per row in original
-M = 32j  #number of pixels per row wanted (complex)
-points = [(math.floor(ix / N), (ix % N)) for ix in range(0, N * N)]
-grid_x, grid_y = np.mgrid[0:(N - 1):M, 0:(N - 1):M]
 
 
 @asyncio.coroutine
@@ -47,7 +59,7 @@ def get_grideye():
             yield from asyncio.sleep(0.5)
         except Exception as e:
             del grideye_connections[index]
-            print(e)
+            logging.info("removing grideye connection {}, ".format(index))
 
 
 @asyncio.coroutine
@@ -61,7 +73,7 @@ def get_yolo():
             yield from asyncio.sleep(0.5)
         except Exception as e:
             del yolo_connections[index]
-            print(e)
+            logging.info("removing yolo connection {}, ".format(index))
 
 
 @asyncio.coroutine
@@ -89,10 +101,11 @@ def send_to_web():
                 yolos.pop()  # empty yolo buffer
         except Exception as e:
             del web_connections[index]
-            print("removing index {}, ".format(index), e)
+            logging.info("removing web connection {}, ".format(index))
 
 
 async def ws_handler(ws, path):
+    logging.info('Incoming ws connection {}'.format(ws))
     ra = ws.remote_address
     listener_task = asyncio.ensure_future(ws.recv())
     done, pending = await asyncio.wait(
@@ -105,10 +118,14 @@ async def ws_handler(ws, path):
             # import pdb; pdb.set_trace()
             json_message = json.loads(message)
             if json_message['device'] == 'grideye':
+                logging.info('adding grideye connection #{}'.format(len(grideye_connections)))
                 grideye_connections.append(ws)
             elif json_message['device'] == 'yolo':
+                logging.info('adding yolo connection #{}'.format(len(yolo_connections)))                
                 yolo_connections.append(ws)
             else:
+                logging.info('adding web connection #{}'.format(
+                    len(web_connections)))
                 web_connections.append(ws)
     while True:
         await asyncio.sleep(1)
