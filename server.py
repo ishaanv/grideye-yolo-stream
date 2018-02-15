@@ -20,7 +20,7 @@ app = Flask(__name__, static_url_path='')
 app.jinja_env.auto_reload = True
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
-# logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 shape = (8, 8)
 frames = deque([], 1)
@@ -33,37 +33,6 @@ N = 8  #number of pixels per row in original
 M = 32j  #number of pixels per row wanted (complex)
 points = [(math.floor(ix / N), (ix % N)) for ix in range(0, N * N)]
 grid_x, grid_y = np.mgrid[0:(N - 1):M, 0:(N - 1):M]
-
-
-def init_grideye():
-    g = GridEYEKit()
-    print("Connecting to Grideye")
-    try:
-        g_status_connect = g.connect()
-        print(g_status_connect)
-        if not g_status_connect:
-            g.close()
-            print("could not connect to grideye...")
-            os._exit(1)
-        print("Connected\n")
-    except:
-        print("could not connect to grideye...")
-        g.close()
-        os._exit(1)
-
-
-async def add_frame():
-    while True:
-        with open('training-Thermal.csv') as f:
-            for frame in csv.reader(f):
-                frames.append([[float(x) for x in row]
-                               for row in np.reshape(frame, (8, 8)).tolist()])
-                await asyncio.sleep(0.5)
-
-
-@app.route('/')
-def hello():
-    return render_template('bvn.html')
 
 
 @asyncio.coroutine
@@ -146,8 +115,6 @@ async def ws_handler(ws, path):
 
 
 def run(host):
-    '''
-    '''
     start_server = websockets.serve(ws_handler, host, 8888)
     asyncio.get_event_loop().run_until_complete(start_server)
     asyncio.async(get_grideye())
