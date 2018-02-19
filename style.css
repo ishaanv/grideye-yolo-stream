@@ -1,7 +1,16 @@
 		
-canvas {
-	background: #fff;
-	margin: 20px auto;
-	border: 5px solid #00264d;
-	display: block;}
+body {
+    background-color:  black;
+}
+
+img {
+    /* display: inline-block; */
+    vertical-align: top;
+    padding-top: 6em;
+    width: 50vw;
+}
+
+h1 {
+    color: white;
+}
 
